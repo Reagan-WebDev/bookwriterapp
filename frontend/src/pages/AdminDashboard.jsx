@@ -45,6 +45,46 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleCompileBook = async (topic) => {
+    try {
+      const res = await api.get(`/submissions/topic/${topic._id}`);
+      const submissions = res.data;
+      
+      let bookContent = `# ${topic.title}\n\n`;
+      bookContent += `${topic.description}\n\n`;
+      bookContent += `Compiled On: ${new Date().toLocaleDateString()}\n\n`;
+      bookContent += `Total Submissions: ${submissions.length}\n`;
+      bookContent += `Total Words: ${topic.currentWordCount}\n\n`;
+      bookContent += `---\n\n`;
+
+      if (submissions.length === 0) {
+        bookContent += `No submissions found for this topic.\n`;
+      }
+
+      submissions.forEach((sub, index) => {
+        const authorName = sub.user && sub.user.name ? sub.user.name : 'Anonymous';
+        bookContent += `## Chapter ${index + 1}\n`;
+        bookContent += `**Author:** ${authorName}\n\n`;
+        bookContent += `${sub.content}\n\n`;
+        bookContent += `---\n\n`;
+      });
+
+      const blob = new Blob([bookContent], { type: 'text/markdown' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${topic.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_compiled_book.md`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+    } catch (err) {
+      console.error(err);
+      alert('Failed to compile book. Please try again.');
+    }
+  };
+
   return (
     <div className="container" style={{ marginTop: '2rem' }}>
       <h2>Admin Dashboard</h2>
@@ -106,20 +146,30 @@ const AdminDashboard = () => {
             <div>
               <h4 style={{ margin: 0 }}>{topic.title}</h4>
               <p className="text-secondary" style={{ margin: 0, fontSize: '0.9rem' }}>
-                Status: <span style={{ color: topic.status === 'open' ? 'var(--success)' : 'var(--danger)' }}>{topic.status.toUpperCase()}</span>
+                Status: <span style={{ color: topic.status === 'open' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold' }}>{topic.status.toUpperCase()}</span>
                 {' | '}
                 {topic.currentSubmissions} subs / {topic.currentWordCount} words 
                 {' '} (Target: {topic.thresholdValue} {topic.thresholdType})
               </p>
             </div>
-            {topic.status === 'open' && (
-              <button 
-                style={{ background: 'var(--danger)', color: 'white' }}
-                onClick={() => handleCloseTopic(topic._id)}
-              >
-                Force Close
-              </button>
-            )}
+            <div>
+              {topic.status === 'open' && (
+                <button 
+                  style={{ background: 'var(--danger)', color: 'white' }}
+                  onClick={() => handleCloseTopic(topic._id)}
+                >
+                  Force Close
+                </button>
+              )}
+              {topic.status === 'closed' && (
+                <button 
+                  className="primary"
+                  onClick={() => handleCompileBook(topic)}
+                >
+                  Compile Book
+                </button>
+              )}
+            </div>
           </div>
         ))}
         {topics.length === 0 && <p className="text-secondary text-center">No topics available.</p>}
