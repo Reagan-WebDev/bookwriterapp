@@ -8,7 +8,7 @@ const Topic = require('../models/Topic');
 // @desc    Generate text continuation using Gemini AI
 // @access  Private
 router.post('/generate', protect, async (req, res) => {
-    const { topicId, currentText } = req.body;
+    const { topicId, currentText, promptText } = req.body;
 
     try {
         if (!process.env.GEMINI_API_KEY) {
@@ -24,17 +24,34 @@ router.post('/generate', protect, async (req, res) => {
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        const prompt = `
-        You are a creative writing assistant helping an author write a chapter for a collaborative book.
-        Book Topic: ${topic.title}
-        Description: ${topic.description}
+        let prompt = "";
+        if (promptText) {
+            prompt = `
+            You are a creative writing assistant helping an author write a chapter for a collaborative book.
+            Book Topic: ${topic.title}
+            Description: ${topic.description}
 
-        The author has written the following text so far:
-        "${currentText || ''}"
+            The author has written the following text so far:
+            "${currentText || ''}"
 
-        Please write the next 2-3 sentences to logically and creatively continue the story. 
-        Do not add any conversational filler like "Here are the next sentences:", just return the raw continuation text.
-        `;
+            The author is specifically asking you this:
+            "${promptText}"
+
+            Please fulfill their request. Provide ONLY the text the author requested, with no extra conversational filler.
+            `;
+        } else {
+            prompt = `
+            You are a creative writing assistant helping an author write a chapter for a collaborative book.
+            Book Topic: ${topic.title}
+            Description: ${topic.description}
+
+            The author has written the following text so far:
+            "${currentText || ''}"
+
+            Please write the next 2-3 sentences to logically and creatively continue the story. 
+            Do not add any conversational filler like "Here are the next sentences:", just return the raw continuation text.
+            `;
+        }
 
         const result = await model.generateContent(prompt);
         const response = result.response;
