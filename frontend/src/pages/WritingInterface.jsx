@@ -12,6 +12,11 @@ const WritingInterface = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
+  
+  // AI Panel States
+  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const [aiPromptText, setAiPromptText] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
 
   const MIN_WORDS = 1000;
 
@@ -53,23 +58,33 @@ const WritingInterface = () => {
   };
 
   const handleAIAssist = async () => {
+    setIsAiPanelOpen(true);
+  };
+
+  const handleAskAI = async () => {
+    if (!aiPromptText.trim()) return;
     setIsGenerating(true);
-    setError('');
+    setAiResponse('');
     
     try {
       const res = await api.post('/ai/generate', {
         topicId,
-        currentText: content.slice(-1500) // Send the last chunk to provide context
+        currentText: content.slice(-1500), // context
+        promptText: aiPromptText
       });
-      
-      const generated = res.data.generatedText;
-      setContent(prev => prev + (prev.endsWith(' ') || prev.endsWith('\n') || prev === '' ? '' : ' ') + generated);
+      setAiResponse(res.data.generatedText);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Failed to generate AI response. Try again later.');
+      setAiResponse(err.response?.data?.message || 'Failed to generate response.');
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleInsertAIResponse = () => {
+    setContent(prev => prev + (prev.endsWith(' ') || prev.endsWith('\n') || prev === '' ? '' : ' ') + aiResponse);
+    setAiResponse('');
+    setAiPromptText('');
   };
 
   if (error && !topic) return <div className="container"><p className="text-danger">{error}</p></div>;
@@ -78,13 +93,24 @@ const WritingInterface = () => {
   const isComplete = wordCount >= MIN_WORDS;
 
   return (
-    <div className="container" style={{ marginTop: '2rem', maxWidth: '900px' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h2>{topic.title}</h2>
-        <p className="text-secondary">{topic.description}</p>
+    <div className="container" style={{ marginTop: '2rem', maxWidth: isAiPanelOpen ? '1200px' : '900px', transition: 'max-width 0.3s ease' }}>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>{topic.title}</h2>
+          <p className="text-secondary">{topic.description}</p>
+        </div>
+        <button 
+          className="secondary" 
+          onClick={() => setIsAiPanelOpen(!isAiPanelOpen)}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          ✨ {isAiPanelOpen ? 'Close AI Panel' : 'Open AI Assistant'}
+        </button>
       </div>
 
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isAiPanelOpen ? '2fr 1fr' : '1fr', gap: '1.5rem', alignItems: 'start' }}>
+        {/* Main Writing Area */}
+        <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)' }}>
           <span style={{ fontWeight: 600 }}>Draft</span>
           <span style={{ 
@@ -117,14 +143,15 @@ const WritingInterface = () => {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {!isComplete && <span className="text-secondary" style={{ fontSize: '0.9rem' }}>{MIN_WORDS - wordCount} words remaining</span>}
             
-            <button 
-              className="secondary" 
-              disabled={isGenerating || submitting}
-              onClick={handleAIAssist}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              {isGenerating ? '✨ Thinking...' : '✨ AI Assist'}
-            </button>
+            {!isAiPanelOpen && (
+              <button 
+                className="secondary" 
+                onClick={handleAIAssist}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                ✨ AI Assist
+              </button>
+            )}
 
             <button 
               className="primary" 
@@ -135,6 +162,65 @@ const WritingInterface = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* AI Side Panel */}
+      {isAiPanelOpen && (
+        <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', minHeight: '60vh' }}>
+          <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            ✨ Gemini Assistant
+          </h3>
+          <p className="text-secondary" style={{ fontSize: '0.9rem', margin: 0 }}>
+            Ask me to outline the next paragraph, describe a character, or brainstorm ideas!
+          </p>
+
+          <textarea
+            style={{ 
+              width: '100%', 
+              padding: '1rem',
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'white',
+              resize: 'vertical',
+              minHeight: '100px'
+            }}
+            placeholder="E.g. What should happen next after the explosion?"
+            value={aiPromptText}
+            onChange={(e) => setAiPromptText(e.target.value)}
+          />
+          
+          <button 
+            className="secondary" 
+            onClick={handleAskAI}
+            disabled={isGenerating || !aiPromptText.trim()}
+          >
+            {isGenerating ? 'Thinking...' : 'Ask AI'}
+          </button>
+
+          {aiResponse && (
+            <div style={{ marginTop: '1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ 
+                padding: '1rem', 
+                background: 'rgba(30, 41, 59, 0.4)', 
+                borderRadius: '8px', 
+                border: '1px solid var(--border)',
+                maxHeight: '300px',
+                overflowY: 'auto',
+                whiteSpace: 'pre-wrap'
+              }}>
+                {aiResponse}
+              </div>
+              <button 
+                className="primary" 
+                onClick={handleInsertAIResponse}
+              >
+                Insert into Draft
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       </div>
     </div>
   );
