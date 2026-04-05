@@ -11,7 +11,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -35,7 +35,7 @@ const Navbar = () => {
       <nav style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
         {token ? (
           <>
-            <Link to="/">Dashboard</Link>
+            <Link to="/dashboard">Dashboard</Link>
             {user?.role === 'admin' && <Link to="/admin" className="text-accent">Admin</Link>}
             
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: '1rem' }}>

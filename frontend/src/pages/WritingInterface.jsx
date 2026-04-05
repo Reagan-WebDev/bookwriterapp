@@ -10,6 +10,7 @@ const WritingInterface = () => {
   const [content, setContent] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
   const MIN_WORDS = 1000;
@@ -48,6 +49,26 @@ const WritingInterface = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit');
       setSubmitting(false);
+    }
+  };
+
+  const handleAIAssist = async () => {
+    setIsGenerating(true);
+    setError('');
+    
+    try {
+      const res = await api.post('/ai/generate', {
+        topicId,
+        currentText: content.slice(-1500) // Send the last chunk to provide context
+      });
+      
+      const generated = res.data.generatedText;
+      setContent(prev => prev + (prev.endsWith(' ') || prev.endsWith('\n') || prev === '' ? '' : ' ') + generated);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to generate AI response. Try again later.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -92,9 +113,19 @@ const WritingInterface = () => {
         />
         
         <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', background: 'rgba(0,0,0,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {error && <span style={{ color: 'var(--danger)' }}>{error}</span>}
+          {error && <span style={{ color: 'var(--danger)', flex: 1 }}>{error}</span>}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {!isComplete && <span className="text-secondary" style={{ fontSize: '0.9rem' }}>{MIN_WORDS - wordCount} words remaining</span>}
+            
+            <button 
+              className="secondary" 
+              disabled={isGenerating || submitting}
+              onClick={handleAIAssist}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              {isGenerating ? '✨ Thinking...' : '✨ AI Assist'}
+            </button>
+
             <button 
               className="primary" 
               disabled={!isComplete || submitting}
