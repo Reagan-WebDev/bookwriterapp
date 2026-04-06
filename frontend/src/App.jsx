@@ -9,6 +9,7 @@ import WritingInterface from './pages/WritingInterface';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import CompiledBooks from './pages/CompiledBooks';
 
 // Simple protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -34,6 +35,7 @@ function App() {
             <Route path="/community/:topicId" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/compiled-books" element={<ProtectedRoute><CompiledBooks /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

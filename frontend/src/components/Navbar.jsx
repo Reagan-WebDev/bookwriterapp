@@ -36,7 +36,12 @@ const Navbar = () => {
         {token ? (
           <>
             <Link to="/dashboard">Dashboard</Link>
-            {user?.role === 'admin' && <Link to="/admin" className="text-accent">Admin</Link>}
+            {user?.role === 'admin' && (
+              <>
+                <Link to="/compiled-books" className="text-secondary">Library</Link>
+                <Link to="/admin" className="text-accent">Admin</Link>
+              </>
+            )}
             
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: '1rem' }}>
               <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
