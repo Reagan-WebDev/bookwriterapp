@@ -174,3 +174,28 @@ input:focus, textarea:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
 }
+
+/* Theme Context Modifiers */
+body.light-mode {
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --border: rgba(0, 0, 0, 0.1);
+}
+
+/* Font Setting Overrides */
+body.font-sans {
+  --font-body: 'Open Sans', sans-serif;
+  --font-heading: 'Poppins', sans-serif;
+}
+body.font-serif {
+  --font-body: 'Georgia', serif;
+  --font-heading: 'Georgia', serif;
+}
+body.font-monospace {
+  --font-body: 'Courier New', monospace;
+  --font-heading: 'Courier New', monospace;
+}

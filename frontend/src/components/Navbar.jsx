@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, LogOut, User } from 'lucide-react';
+import { BookOpen, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -44,6 +44,9 @@ const Navbar = () => {
             )}
             
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginLeft: '1rem' }}>
+              <Link to="/settings" style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }} title="Settings">
+                <SettingsIcon size={20} />
+              </Link>
               <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <User size={18} /> {user?.name}
               </Link>

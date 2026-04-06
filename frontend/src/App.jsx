@@ -10,6 +10,7 @@ import Community from './pages/Community';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import CompiledBooks from './pages/CompiledBooks';
+import Settings from './pages/Settings';
 
 // Simple protected route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -36,6 +37,7 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/compiled-books" element={<ProtectedRoute><CompiledBooks /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
