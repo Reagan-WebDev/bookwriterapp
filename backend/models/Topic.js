@@ -14,6 +14,10 @@ const TopicSchema = new mongoose.Schema({
         enum: ['open', 'closed'],
         default: 'open',
     },
+    isCompiled: {
+        type: Boolean,
+        default: false,
+    },
     thresholdType: {
         type: String,
         enum: ['submissions', 'wordCount'],

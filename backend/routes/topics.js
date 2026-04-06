@@ -69,4 +69,25 @@ router.put('/:id/close', protect, admin, async (req, res) => {
     }
 });
 
+// @route   PUT /api/topics/:id/compile
+// @desc    Mark a topic as compiled
+// @access  Private/Admin
+router.put('/:id/compile', protect, admin, async (req, res) => {
+    try {
+        const topic = await Topic.findById(req.params.id);
+        if (!topic) return res.status(404).json({ message: 'Topic not found' });
+        
+        if (topic.status !== 'closed') {
+            return res.status(400).json({ message: 'Only closed topics can be compiled' });
+        }
+
+        topic.isCompiled = true;
+        await topic.save();
+        res.json(topic);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 module.exports = router;
